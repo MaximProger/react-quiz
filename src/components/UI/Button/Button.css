@@ -19,9 +19,9 @@
 }
 
 .Button:disabled {
-  background: #ccc;
+  background: #ccc !important;
   cursor: not-allowed;
-  color: #000;
+  color: #000 !important;
 }
 
 .Button.error {
