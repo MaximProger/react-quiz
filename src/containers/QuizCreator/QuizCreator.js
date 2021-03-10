@@ -3,7 +3,12 @@ import "./QuizCreator.css";
 import Button from "../../components/UI/Button/Button";
 import Input from "../../components/UI/Input/Input";
 import Select from "../../components/UI/Select/Select";
-import { createControl } from "../../form/formFramework";
+import {
+  createControl,
+  validate,
+  validateForm,
+} from "../../form/formFramework";
+import axios from "../../axios/axios-quiz";
 
 function createOptionControl(number) {
   return createControl(
@@ -35,7 +40,8 @@ function createFormControls() {
 export default class QuizCreator extends Component {
   state = {
     quiz: [],
-    rightAnserId: 1,
+    isFormValid: false,
+    rightAnswerId: 1,
     formControls: createFormControls(),
   };
 
@@ -43,11 +49,85 @@ export default class QuizCreator extends Component {
     evt.preventDefault();
   }
 
-  addQuestionHandler = () => {};
+  addQuestionHandler = (evt) => {
+    evt.preventDefault();
 
-  createQuestionHandler = () => {};
+    const quiz = this.state.quiz.concat();
+    const index = quiz.length + 1;
+    const {
+      question,
+      option_1,
+      option_2,
+      option_3,
+      option_4,
+    } = this.state.formControls;
 
-  changeHandler = (value, controlName) => {};
+    const questionItem = {
+      question: question.value,
+      id: index,
+      rightAnswerId: this.state.rightAnswerId,
+      answers: [
+        {
+          text: option_1.value,
+          id: option_1.id,
+        },
+        {
+          text: option_2.value,
+          id: option_2.id,
+        },
+        {
+          text: option_3.value,
+          id: option_3.id,
+        },
+        {
+          text: option_4.value,
+          id: option_4.id,
+        },
+      ],
+    };
+
+    quiz.push(questionItem);
+
+    this.setState({
+      quiz,
+      isFormValid: false,
+      rightAnswerId: 1,
+      formControls: createFormControls(),
+    });
+  };
+
+  createQuizHandler = async (evt) => {
+    evt.preventDefault();
+
+    try {
+      await axios.post(`/quizes.json`, this.state.quiz);
+
+      this.setState({
+        quiz: [],
+        isFormValid: false,
+        rightAnswerId: 1,
+        formControls: createFormControls(),
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  changeHandler = (value, controlName) => {
+    const formControls = { ...this.state.formControls };
+    const control = { ...formControls[controlName] };
+
+    control.touched = true;
+    control.value = value;
+    control.valid = validate(control.value, control.validation);
+
+    formControls[controlName] = control;
+
+    this.setState({
+      formControls,
+      isFormValid: validateForm(formControls),
+    });
+  };
 
   renderControls() {
     return Object.keys(this.state.formControls).map((controlName, index) => {
@@ -74,7 +154,7 @@ export default class QuizCreator extends Component {
 
   selectChangeHandler = (evt) => {
     this.setState({
-      rightAnserId: +evt.target.value,
+      rightAnswerId: +evt.target.value,
     });
   };
 
@@ -82,7 +162,7 @@ export default class QuizCreator extends Component {
     const select = (
       <Select
         label="Выберете правильный ответ"
-        value={this.state.rightAnserId}
+        value={this.state.rightAnswerId}
         onChange={this.selectChangeHandler}
         options={[
           { text: 1, value: 1 },
@@ -101,10 +181,18 @@ export default class QuizCreator extends Component {
             {this.renderControls()}
 
             {select}
-            <Button type="primary" onClick={this.addQuestionHandler}>
+            <Button
+              type="primary"
+              onClick={this.addQuestionHandler}
+              disabled={!this.state.isFormValid}
+            >
               Добавить вопрос
             </Button>
-            <Button type="success" onClick={this.createQuestionHandler}>
+            <Button
+              type="success"
+              onClick={this.createQuizHandler}
+              disabled={this.state.quiz.length === 0}
+            >
               Создать тест
             </Button>
           </form>

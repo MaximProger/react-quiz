@@ -3,6 +3,7 @@ import "./Auth.css";
 import Button from "../../components/UI/Button/Button";
 import Input from "../../components/UI/Input/Input";
 import is from "is_js";
+import axios from "axios";
 
 export default class Auth extends Component {
   state = {
@@ -35,9 +36,43 @@ export default class Auth extends Component {
     },
   };
 
-  loginHandker = () => {};
+  loginHandler = async () => {
+    const authData = {
+      email: this.state.formControls.email.value,
+      password: this.state.formControls.password.value,
+      returnSecureToken: true,
+    };
 
-  registerHandler = () => {};
+    try {
+      const response = await axios.post(
+        `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=
+      AIzaSyC-EA8GjTHjGsiQvZn9etVuBFWrdUIg2ig`,
+        authData
+      );
+      console.log(response.data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  registerHandler = async () => {
+    const authData = {
+      email: this.state.formControls.email.value,
+      password: this.state.formControls.password.value,
+      returnSecureToken: true,
+    };
+
+    try {
+      const response = await axios.post(
+        `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=
+      AIzaSyC-EA8GjTHjGsiQvZn9etVuBFWrdUIg2ig`,
+        authData
+      );
+      console.log(response.data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   submitHandler = (evt) => {
     evt.preventDefault();
@@ -115,7 +150,7 @@ export default class Auth extends Component {
 
             <Button
               type="success"
-              onClick={this.loginHandker}
+              onClick={this.loginHandler}
               disabled={!this.state.isFormValid}
             >
               Войти
